@@ -7,12 +7,12 @@ on:
         required: true
         type: string
       rules_url:
-        required: true
+        required: false
         type: string
 
 jobs:
   check-lock:
-    runs-on: ${{ inputs.runs-on }}
+    runs-on: ${{ inputs.runs-on || 'ubuntu-latest' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,4 +20,4 @@ jobs:
       - name: Run package-lock check
         uses: InteropIO/javascript-check-dependencies-action@master
         with:
-          rules_url: ${{ inputs.rules_url }}
+          rules_url: ${{ inputs.rules_url || 'https://raw.githubusercontent.com/InteropIO/javascript-check-dependencies-action/refs/heads/master/bad-deps.json' }}
