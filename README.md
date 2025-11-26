@@ -15,8 +15,6 @@ This action checks that no compromised packages are referenced in any package-lo
 
 ## Usage
 
-Install node and the dependencies, then run.
-
 ```yaml
 name: Check package-lock for compromised dependencies
 
