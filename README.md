@@ -31,7 +31,23 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run package-lock check
-        uses: staafl/javascript-check-dependencies-action@v0.0.4
+        uses: InteropIO/javascript-check-dependencies-action@v0.0.4
         with:
-          rules_url: https://raw.githubusercontent.com/staafl/javascript-check-dependencies-action/refs/heads/master/bad-deps.json
+          rules_url: https://raw.githubusercontent.com/InteropIO/javascript-check-dependencies-action/refs/heads/master/bad-deps.json
+
+```
+
+There's also a reusable workflow version you can invoke:
+
+```yaml
+jobs:
+  check-package-jsons:
+    uses: InteropIO/javascript-check-dependencies-action/.github/workflows/check-deps-reusable.yaml@master
+    permissions:
+      contents: read
+    ## optional
+    # with:
+    # runs-on: ubuntu-latest
+    # rules_url: https://raw.githubusercontent.com/InteropIO/javascript-check-dependencies-action/refs/heads/master/bad-deps.json
+
 ```
