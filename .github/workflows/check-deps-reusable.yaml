@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       runs-on:
-        required: true
+        required: false
         type: string
       rules_url:
         required: false
