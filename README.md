@@ -38,7 +38,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run package-lock check
-        uses: staafl/javascript-check-dependencies-action@latest
+        uses: staafl/javascript-check-dependencies-action@v0.0.3
         with:
           rules_url: https://raw.githubusercontent.com/staafl/javascript-check-dependencies-action/refs/heads/master/bad-deps.json
 ```
