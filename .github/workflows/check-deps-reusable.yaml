@@ -3,13 +3,16 @@ name: Check package-lock for compromised dependencies
 on:
   workflow_call:
     inputs:
+      runs-on:
+        required: false
+        type: string
       rules_url:
-        required: true
+        required: false
         type: string
 
 jobs:
   check-lock:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on || 'ubuntu-latest' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,4 +20,4 @@ jobs:
       - name: Run package-lock check
         uses: staafl/javascript-check-dependencies-action@master
         with:
-          rules_url: ${{ inputs.rules_url }}
+          rules_url: ${{ inputs.rules_url || 'https://raw.githubusercontent.com/staafl/javascript-check-dependencies-action/refs/heads/master/bad-deps.json' }}
