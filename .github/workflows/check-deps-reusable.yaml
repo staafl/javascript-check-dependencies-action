@@ -3,18 +3,21 @@ name: Check package-lock for compromised dependencies
 on:
   workflow_call:
     inputs:
+      runs-on:
+        required: true
+        type: string
       rules_url:
         required: true
         type: string
 
 jobs:
   check-lock:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Run package-lock check
-        uses: staafl/javascript-check-dependencies-action@master
+        uses: InteropIO/javascript-check-dependencies-action@master
         with:
           rules_url: ${{ inputs.rules_url }}
