@@ -12,10 +12,10 @@ and avoid a scenario where more than one lockfile is present.
 - **`rules_url` (required):** URL pointing to a JSON file with the banned package versions:
 
 ```json
-{
-  "@acme/bad": ["1.0.*", "^1.1.2"],
-  "evil-package": "*"
-}
+[
+  ["@acme/bad", "1.0.*", "^1.1.2"],
+  ["evil-package", "*"]
+]
 ```
 
 ## Usage
@@ -38,7 +38,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run package-lock check
-        uses: staafl/javascript-check-dependencies-action@v0.0.1
+        uses: staafl/javascript-check-dependencies-action@latest
         with:
-          rules_url: https://raw.githubusercontent.com/staafl/javascript-check-dependencies-action/refs/heads/master/bad_deps.json
+          rules_url: https://raw.githubusercontent.com/staafl/javascript-check-dependencies-action/refs/heads/master/bad-deps.json
 ```
