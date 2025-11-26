@@ -74,10 +74,10 @@ async function run() {
 /**
  * Load bad dependency rules from a URL.
  * Expected format:
- * {
- *   "@acme/bad": ["1.0.*", "^1.1.2"],
- *   "evil-package": "*"
- * }
+ * [
+ *   ["@acme/bad", "1.0.*", "^1.1.2"],
+ *   ["evil-package": "*"]
+ * ]
  */
 async function loadBadDependencyRules(url) {
   core.info(`Loading bad dependency rules from ${url}...`);
@@ -94,28 +94,29 @@ async function loadBadDependencyRules(url) {
     throw new Error(`Bad dependency rules at ${url} are not valid JSON: ${e.message}`);
   }
 
-  if (!data || typeof data !== "object" || Array.isArray(data)) {
-    throw new Error("Bad dependency rules JSON must be an object mapping package names to ranges.");
+  if (!data || !Array.isArray(data)) {
+    throw new Error("Bad dependency rules: JSON must be an array with each entry of the format [package-name,range1,range2...].");
   }
 
   const normalized = {};
 
-  for (const [pkg, ranges] of Object.entries(data)) {
-    if (typeof ranges === "string") {
-      // e.g. "evil-package": "*" -> ["*"]
-      normalized[pkg] = [ranges];
-    } else if (Array.isArray(ranges)) {
-      // e.g. "@acme/bad": ["1.0.*", "^1.1.2"]
-      normalized[pkg] = ranges.map(String);
+  for (const pkgAndRanges of data) {
+    // ["@acme/bad", "1.0.*", "^1.1.2"]
+    if (Array.isArray(pkgAndRanges)) {
+      const name = pkgAndRanges[0];
+      if (!normalized[name]) {
+        normalized[name] = [];
+      }
+      [].push.apply(normalized[name], pkgAndRanges.slice(1).map(String));
     } else {
       core.warning(
-        `Ignoring rules for "${pkg}" – expected string or array of strings, got ${typeof ranges}`
+        `Ignoring rules for "${pkg}" – array of strings, got ${typeof pkgAndRanges}`
       );
     }
   }
 
   core.info(
-    `Loaded rules for ${Object.keys(normalized).length} package(s).`
+    `Loaded rules for ${Object.keys(normalized).length} package(s): ${Object.keys(normalized).slice(0, 3).join(",")}...`
   );
 
   return normalized;
