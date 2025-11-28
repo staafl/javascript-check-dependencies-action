@@ -32760,18 +32760,89 @@ const glob = __nccwpck_require__(7206);
 const fs = __nccwpck_require__(9896);
 const semver = __nccwpck_require__(2088);
 
-// badRules structure after loading:
-// {
-//   "@acme/bad": ["1.0.*", "^1.1.2"],
-//   "evil-package": ["*"]
-// }
+function isInGitHubAction() {
+    return process.env.GITHUB_RUN_ID && process.env.CI;
+}
+
+let exitCode = 0;
+
+function setFailed(msg) {
+    if (isInGitHubAction()) {
+        core.setFailed(msg);
+    } else {
+        console.error(msg)
+        exitCode = 1;
+    }
+}
+
+
+function error(msg) {
+    if (isInGitHubAction()) {
+        core.error(msg);
+    } else {
+        console.error(msg)
+    }
+}
+
+function warn(msg) {
+    if (isInGitHubAction()) {
+        core.warning(msg);
+    } else {
+        console.warn(msg)
+    }
+}
+
+function info(msg) {
+    if (isInGitHubAction()) {
+        core.info(msg);
+    } else {
+        console.info(msg)
+    }
+}
+
+function startGroup(msg) {
+    if (isInGitHubAction()) {
+        core.startGroup(msg);
+    } else {
+        console.info("===============")
+        console.info(msg)
+        console.info("===============")
+    }
+}
+
+function endGroup() {
+    if (isInGitHubAction()) {
+        core.endGroup();
+    } else {
+        console.info("===============")
+    }
+}
+
+function getInput(name, opts) {
+    if (isInGitHubAction()) {
+        return core.getInput(name, opts);
+    } else {
+        if (name === "rules_url") {
+            return process.env.JAVASCRIPT_CHECK_DEPENDENCIES_RULES_URL ??
+                "https://raw.githubusercontent.com/interopio/javascript-check-dependencies-action/refs/heads/master/bad-deps.json";
+        }
+        throw new Error(`Unknown input name: ${name}`);
+    }
+}
+
 async function run() {
   try {
-    const rulesUrl = core.getInput("rules_url", { required: true });
+    const rulesUrl = getInput("rules_url", { required: true });
+
+    // badRules structure after loading:
+    // {
+    //   "@acme/bad": ["1.0.*", "^1.1.2"],
+    //   "evil-package": ["*"]
+    // }
     const badRules = await loadBadDependencyRules(rulesUrl);
 
     if (!badRules || Object.keys(badRules).length === 0) {
-      core.warning("No bad dependency rules loaded – nothing to check.");
+      warn("No bad dependency rules loaded – nothing to check.");
       return;
     }
 
@@ -32782,11 +32853,11 @@ async function run() {
     }
 
     if (files.length === 0) {
-      core.info("No package-lock.json files found. Nothing to check.");
+      info("No package-lock.json files found. Nothing to check.");
       return;
     }
 
-    core.info(`Found ${files.length} package-lock.json file(s). Scanning...`);
+    info(`Found ${files.length} package-lock.json file(s). Scanning...`);
 
     const allFindings = [];
 
@@ -32797,7 +32868,7 @@ async function run() {
       try {
         json = JSON.parse(content);
       } catch (err) {
-        core.warning(`Skipping ${file}: invalid JSON (${err.message})`);
+        warn(`Skipping ${file}: invalid JSON (${err.message})`);
         continue;
       }
 
@@ -32806,9 +32877,9 @@ async function run() {
     }
 
     if (allFindings.length > 0) {
-      core.startGroup("Compromised dependencies found");
+      startGroup("Compromised dependencies found");
       for (const finding of allFindings) {
-        core.error(
+        error(
           `File: ${finding.file}\n` +
           `Location: ${finding.location}\n` +
           `Package: ${finding.name}\n` +
@@ -32816,15 +32887,15 @@ async function run() {
           `Matched ranges: ${finding.matchedRanges.join(", ")}\n`
         );
       }
-      core.endGroup();
-      core.setFailed(
+      endGroup();
+      setFailed(
         `Detected ${allFindings.length} occurrence(s) of dependencies matching the bad rules from ${rulesUrl}.`
       );
     } else {
-      core.info(`No compromised dependencies found using rules from ${rulesUrl}.`);
+      info(`No compromised dependencies found using rules from ${rulesUrl}.`);
     }
   } catch (error) {
-    core.setFailed(error.message);
+    setFailed(error.message);
   }
 }
 
@@ -32837,7 +32908,7 @@ async function run() {
  * ]
  */
 async function loadBadDependencyRules(url) {
-  core.info(`Loading bad dependency rules from ${url}...`);
+  info(`Loading bad dependency rules from ${url}...`);
 
   const res = await fetch(url);
   if (!res.ok) {
@@ -32866,13 +32937,13 @@ async function loadBadDependencyRules(url) {
       }
       [].push.apply(normalized[name], pkgAndRanges.slice(1).map(String));
     } else {
-      core.warning(
+      warn(
         `Ignoring rules for "${pkg}" – array of strings, got ${typeof pkgAndRanges}`
       );
     }
   }
 
-  core.info(
+  info(
     `Loaded rules for ${Object.keys(normalized).length} package(s): ${Object.keys(normalized).slice(0, 3).join(",")}...`
   );
 
@@ -32939,8 +33010,11 @@ function scanPackageLock(json, file, rules) {
 
     // Handle dependencies-style maps:
     // "dependencies": { "pkg": { "version": "1.0.0", ... } }
-    for (const [key, value] of Object.entries(node)) {
+    for (const [rawKey, value] of Object.entries(node)) {
       if (value && typeof value === "object") {
+        const key = rawKey.replace(/^.*?((?:@[^\/]+\/)?[^\/]+)$/, "$1");
+        // console.log(key, value);
+
         // If key is a package name in rules and value has a version field,
         // this is likely a dependency entry.
         if (rules[key] && value.version) {

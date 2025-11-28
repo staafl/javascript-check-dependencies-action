@@ -1,7 +1,6 @@
 {
-  "name": "@staafl/check-dependencies-action",
-  "version": "1.0.0",
-  "private": true,
+  "name": "@interopio/check-dependencies-action",
+  "version": "1.0.4",
   "main": "index.js",
   "scripts": {
     "build": "ncc build index.js -o dist"
@@ -13,5 +12,12 @@
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.4"
+  },
+  "bin": {
+    "check-deps": "shims/check-deps.cmd"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
   }
 }
