@@ -13,5 +13,8 @@
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.4"
+  },
+  "bin": {
+    "check-deps": "dist/index.js"
   }
 }
