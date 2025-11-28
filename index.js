@@ -253,8 +253,11 @@ function scanPackageLock(json, file, rules) {
 
     // Handle dependencies-style maps:
     // "dependencies": { "pkg": { "version": "1.0.0", ... } }
-    for (const [key, value] of Object.entries(node)) {
+    for (const [rawKey, value] of Object.entries(node)) {
       if (value && typeof value === "object") {
+        const key = rawKey.replace(/^.*?((?:@[^\/]+\/)?[^\/]+)$/, "$1");
+        // console.log(key, value);
+
         // If key is a package name in rules and value has a version field,
         // this is likely a dependency entry.
         if (rules[key] && value.version) {
