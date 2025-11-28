@@ -16,5 +16,9 @@
   },
   "bin": {
     "check-deps": "./shims/check-deps.cmd"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
   }
 }
