@@ -1,6 +1,6 @@
 {
   "name": "@staafl/check-dependencies-action",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "index.js",
   "scripts": {
     "build": "ncc build index.js -o dist"
